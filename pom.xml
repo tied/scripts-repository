@@ -15,7 +15,7 @@
     </organization>
 
     <name>scripts-repository</name>
-    <description>This is a container to store ScriptRunner scripts</description>
+    <description>This is a container to store Script Runner scripts</description>
 
     <dependencies>
         <dependency>
@@ -31,9 +31,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.atlassian.bitbucket.server</groupId>
-            <artifactId>bitbucket-api</artifactId>
-            <version>${bitbucket.version}</version>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-api</artifactId>
+            <version>${stash.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -44,9 +44,9 @@
     </dependencies>
 
     <properties>
-        <jira.version>7.0.0</jira.version>
-        <bitbucket.version>4.2.0</bitbucket.version>
-        <amps.version>6.2.1</amps.version>
+        <jira.version>6.4.7</jira.version>
+        <stash.version>3.10.2</stash.version>
+        <amps.version>5.0.13</amps.version>
         <groovy.version>2.4.3</groovy.version>
     </properties>
 </project>
