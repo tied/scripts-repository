@@ -2,7 +2,6 @@ import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.jql.parser.JqlQueryParser
 import com.atlassian.jira.issue.search.SearchProvider
 import com.atlassian.jira.web.bean.PagerFilter
-import groovy.transform.Field
 
 // Execute a JQL query
 def findIssues(String jqlQuery) {
@@ -21,20 +20,20 @@ def epicQuery = "project = scrum and issuetype = epic"
 def epics = findIssues(epicQuery)
 
 // Parse out the results and build a new JQL query from it
-StringBuilder storyQuery = new StringBuilder();
+StringBuilder storyQuery = new StringBuilder()
 
 for ( int i = 0; i < epics.size(); i++) {
 
 	if ( i == 0 ) {
-		storyQuery.append('"Epic Link" in (');
+		storyQuery.append('"Epic Link" in (')
 	}
 
-	storyQuery.append(epics.get(i));
+	storyQuery.append(epics.get(i))
 
 	if ( i != epics.size() - 1 ) {
-		storyQuery.append(", ");
+		storyQuery.append(", ")
 	} else {
-		storyQuery.append(")");
+		storyQuery.append(")")
 	}
 }
 
