@@ -2,13 +2,12 @@ package com.onresolve.jira.groovy.jql
 
 import com.atlassian.jira.bc.issue.search.SearchService
 import com.atlassian.jira.component.ComponentAccessor
-import com.atlassian.jira.jql.parser.JqlQueryParser
 import com.atlassian.jira.jql.query.LuceneQueryBuilder
 import com.atlassian.jira.jql.query.QueryCreationContext
 import com.atlassian.jira.jql.validator.NumberOfArgumentsValidator
+import com.atlassian.jira.jql.parser.JqlQueryParser
 import com.atlassian.jira.user.ApplicationUser
 import com.atlassian.jira.util.MessageSet
-import com.atlassian.jira.util.MessageSetImpl
 import com.atlassian.query.clause.TerminalClause
 import com.atlassian.query.operand.FunctionOperand
 import groovy.util.logging.Log4j
@@ -19,17 +18,8 @@ import java.text.MessageFormat
 @Log4j
 class JqlAliasFunction extends AbstractScriptedJqlFunction implements JqlQueryFunction {
 
-
-//      Modify this query as appropriate.
-//
-//      See {@link java.text.MessageFormat} for details
-
     public static final String TEMPLATE_QUERY =
             "project = scrum and issuetype = epic"
-
-    def queryParser = ComponentAccessor.getComponent(JqlQueryParser)
-    def luceneQueryBuilder = ComponentAccessor.getComponent(LuceneQueryBuilder)
-    def searchService = ComponentAccessor.getComponent(SearchService)
 
     @Override
     String getDescription() {
@@ -45,8 +35,8 @@ class JqlAliasFunction extends AbstractScriptedJqlFunction implements JqlQueryFu
         }
 
         def query = mergeQuery(operand)
-        messageSet = new MessageSetImpl()
-        // messageSet = searchService.validateQuery(user, query)  // Requires type: User
+        def searchService = ComponentAccessor.getComponent(SearchService)
+        messageSet = searchService.validateQuery(user, query)
     }
 
     @Override
@@ -64,16 +54,20 @@ class JqlAliasFunction extends AbstractScriptedJqlFunction implements JqlQueryFu
         "_jqlAlias"
     }
 
+    private com.atlassian.query.Query mergeQuery(FunctionOperand operand) {
+        def queryStr = MessageFormat.format(TEMPLATE_QUERY, operand.args.first())
+        def queryParser = ComponentAccessor.getComponent(JqlQueryParser)
+
+        queryParser.parseQuery(queryStr)
+    }
+
     @Override
     Query getQuery(QueryCreationContext queryCreationContext, FunctionOperand operand, TerminalClause terminalClause) {
 
         def query = mergeQuery(operand)
+        def luceneQueryBuilder = ComponentAccessor.getComponent(LuceneQueryBuilder)
         luceneQueryBuilder.createLuceneQuery(queryCreationContext, query.whereClause)
     }
 
-    private com.atlassian.query.Query mergeQuery(FunctionOperand operand) {
-        def queryStr = MessageFormat.format(TEMPLATE_QUERY, operand.args.first())
-        queryParser.parseQuery(queryStr)
-    }
 }
 
