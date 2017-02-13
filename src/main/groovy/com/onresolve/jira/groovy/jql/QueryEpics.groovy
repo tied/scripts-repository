@@ -30,8 +30,8 @@ class QueryEpics extends AbstractScriptedJqlFunction implements JqlQueryFunction
         // 2nd pass query to get all the stories
         epics.each { Issue epic ->
             try {
-                def epicID = epic.id as String
-                def stories = getIssues("Epic Link in " + epicId, applicationUser)
+                def epicID = epic.getKey()
+                def stories = getIssues("\"Epic Link\" in (" + epicID + ")", applicationUser)
 
                 stories.each { Issue story ->
                     def storyID = story.id as String
