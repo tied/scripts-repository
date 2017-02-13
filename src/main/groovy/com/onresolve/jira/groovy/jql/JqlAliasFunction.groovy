@@ -62,7 +62,7 @@ class JqlAliasFunction extends AbstractScriptedJqlFunction implements JqlQueryFu
 
     @Override
     Query getQuery(QueryCreationContext queryCreationContext, FunctionOperand operand, TerminalClause terminalClause) {
-        String jql = operand.args.first() //"project = scrum"
+        String jql = operand.args.first()
         def queryParser = ComponentAccessor.getComponent(JqlQueryParser)
         def query = queryParser.parseQuery(jql)
 
