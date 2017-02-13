@@ -19,11 +19,11 @@ import java.text.MessageFormat
 class JqlAliasFunction extends AbstractScriptedJqlFunction implements JqlQueryFunction {
 
     public static final String TEMPLATE_QUERY =
-            "project = scrum and issuetype = epic"
+            ""
 
     @Override
     String getDescription() {
-        "Create release notes"
+        "JQL Alias"
     }
 
     @Override
@@ -43,7 +43,7 @@ class JqlAliasFunction extends AbstractScriptedJqlFunction implements JqlQueryFu
     List<Map> getArguments() {
         [
                 [
-                        description: "Version to generate release notes for",
+                        description: "Search query",
                         optional: false,
                 ]
         ]
@@ -57,16 +57,18 @@ class JqlAliasFunction extends AbstractScriptedJqlFunction implements JqlQueryFu
     private com.atlassian.query.Query mergeQuery(FunctionOperand operand) {
         def queryStr = MessageFormat.format(TEMPLATE_QUERY, operand.args.first())
         def queryParser = ComponentAccessor.getComponent(JqlQueryParser)
-
         queryParser.parseQuery(queryStr)
     }
 
     @Override
     Query getQuery(QueryCreationContext queryCreationContext, FunctionOperand operand, TerminalClause terminalClause) {
+        String jql = operand.args.first() //"project = scrum"
+        def queryParser = ComponentAccessor.getComponent(JqlQueryParser)
+        def query = queryParser.parseQuery(jql)
 
-        def query = mergeQuery(operand)
+//        def query = mergeQuery(operand)
         def luceneQueryBuilder = ComponentAccessor.getComponent(LuceneQueryBuilder)
-        luceneQueryBuilder.createLuceneQuery(queryCreationContext, query.whereClause)
+        def luceneQuery = luceneQueryBuilder.createLuceneQuery(queryCreationContext, query.whereClause)
     }
 
 }
