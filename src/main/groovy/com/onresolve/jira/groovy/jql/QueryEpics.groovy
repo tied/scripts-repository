@@ -1,8 +1,10 @@
 
 package com.onresolve.jira.groovy.jql
 
+import com.atlassian.jira.bc.issue.search.SearchService
 import com.atlassian.jira.issue.Issue
 import com.atlassian.jira.jql.query.QueryCreationContext
+import com.atlassian.jira.jql.validator.NumberOfArgumentsValidator
 import com.atlassian.jira.security.JiraAuthenticationContext
 import com.atlassian.jira.user.ApplicationUser
 import com.atlassian.jira.util.MessageSet
@@ -20,8 +22,11 @@ import com.atlassian.jira.issue.search.SearchProvider
 import com.atlassian.jira.web.bean.PagerFilter
 import org.apache.lucene.search.TermQuery
 
+import java.text.MessageFormat
+
 class QueryEpics extends AbstractScriptedJqlFunction implements JqlQueryFunction {
 
+    public static final String TEMPLATE_QUERY = ""
     // Execute a JQL query
     def findIssues(String jqlQuery) {
         def issueManager = ComponentAccessor.issueManager
@@ -34,13 +39,19 @@ class QueryEpics extends AbstractScriptedJqlFunction implements JqlQueryFunction
         results.issues.collect { issue -> issueManager.getIssueObject(issue.id) }
     }
 
+    private com.atlassian.query.Query mergeQuery(FunctionOperand operand) {
+        def queryStr = MessageFormat.format(TEMPLATE_QUERY, operand.args.first())
+        def queryParser = ComponentAccessor.getComponent(JqlQueryParser)
+        queryParser.parseQuery(queryStr)
+    }
+
     @Override
     Query getQuery(QueryCreationContext queryCreationContext, FunctionOperand operand, TerminalClause terminalClause) {
         JiraAuthenticationContext context = ComponentAccessor.getJiraAuthenticationContext()
         ApplicationUser applicationUser = context.getLoggedInUser()
         def booleanQuery = new BooleanQuery()
-        issues = getIssues(operand.args[0], applicationUser)
-        issues.each { Issue issue ->
+        def epics = getIssues("project = " + operand.args[0] + " AND issuetype = Epic", applicationUser)
+        epics.each { Issue issue ->
             try {
                 booleanQuery.add(new TermQuery(new Term("issue_id", issue.id as String)), BooleanClause.Occur.SHOULD)
             } catch (NullPointerException NPE) {
@@ -48,10 +59,8 @@ class QueryEpics extends AbstractScriptedJqlFunction implements JqlQueryFunction
             }
         }
 
-
-
-        // Define the 1st pass query and execute
-//        def epicQuery = "project = scrum and issuetype = epic"
+//        // Define the 1st pass query and execute
+//        def epicQuery = "project = scrum AND issuetype = Epic"
 //        def epics = findIssues(epicQuery)
 //
 //        // Parse out the results and build a new JQL query from it
@@ -90,8 +99,15 @@ class QueryEpics extends AbstractScriptedJqlFunction implements JqlQueryFunction
 
     @Override
     MessageSet validate(ApplicationUser user, FunctionOperand operand, TerminalClause terminalClause) {
-        def messageSet = new MessageSetImpl()
-        return messageSet
+        def messageSet = new NumberOfArgumentsValidator(1, 1, getI18n()).validate(operand)
+
+        if (messageSet.hasAnyErrors()) {
+            return messageSet
+        }
+
+        def query = mergeQuery(operand)
+        def searchService = ComponentAccessor.getComponent(SearchService)
+        messageSet = searchService.validateQuery(user, query)
     }
 
     @Override
@@ -101,7 +117,12 @@ class QueryEpics extends AbstractScriptedJqlFunction implements JqlQueryFunction
 
     @Override
     List<Map> getArguments() {
-        []
+        [
+                [
+                        description: "Project to query",
+                        optional: false,
+                ]
+        ]
     }
 
     @Override
